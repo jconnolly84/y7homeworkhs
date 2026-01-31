@@ -15,7 +15,8 @@
       <span class="brand__title">KS3 Computing</span>
       <span class="brand__tag">Hardware &amp; Software</span>
     </div>
-    <nav class="topnav">
+        <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" type="button">☰</button>
+    <nav class="topnav" id="topnav">
       <a href="#hardware">Hardware</a>
       <a href="#input">Input</a>
       <a href="#output">Output</a>
@@ -501,5 +502,35 @@
 </script>
 
 <script src="script.js"></script>
+<script>
+  /* Mobile nav toggle (inline) */
+  document.addEventListener("DOMContentLoaded", () => {
+    const hamburger = document.getElementById("hamburger");
+    const topnav = document.getElementById("topnav");
+    if (!hamburger || !topnav) return;
+
+    hamburger.addEventListener("click", () => {
+      const isOpen = topnav.classList.toggle("show");
+      hamburger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+
+    topnav.querySelectorAll("a").forEach(a => {
+      a.addEventListener("click", () => {
+        topnav.classList.remove("show");
+        hamburger.setAttribute("aria-expanded", "false");
+      });
+    });
+
+    document.addEventListener("click", (e) => {
+      if (window.matchMedia("(max-width: 900px)").matches) {
+        const inside = topnav.contains(e.target) || hamburger.contains(e.target);
+        if (!inside) {
+          topnav.classList.remove("show");
+          hamburger.setAttribute("aria-expanded", "false");
+        }
+      }
+    });
+  });
+</script>
 </body>
 </html>
