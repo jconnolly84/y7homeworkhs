@@ -72,7 +72,7 @@
         </p>
 
         <div class="btn-row">
-          <a class="btn" href="downloads/hardware-slides.pdf" target="_blank" rel="noopener"><a class="btn slides-btn" href="downloads/hardware-slides.pdf" target="_blank">📄 Open the hardware slides</a></a>
+          <a class="btn slides-btn" href="downloads/hardware-slides.pdf" target="_blank" rel="noopener">📄 Open the hardware slides</a>
         </div>
 
         <div class="video">
@@ -240,7 +240,7 @@
         </p>
 
         <div class="btn-row">
-          <a class="btn" href="downloads/software-slides.pdf" target="_blank" rel="noopener"><a class="btn slides-btn" href="downloads/software-slides.pdf" target="_blank">📄 Open the software slides</a></a>
+          <a class="btn slides-btn" href="downloads/software-slides.pdf" target="_blank" rel="noopener">📄 Open the software slides</a>
         </div>
 
         <div class="video">
@@ -502,35 +502,5 @@
 </script>
 
 <script src="script.js"></script>
-<script>
-  /* Mobile nav toggle (inline) */
-  document.addEventListener("DOMContentLoaded", () => {
-    const hamburger = document.getElementById("hamburger");
-    const topnav = document.getElementById("topnav");
-    if (!hamburger || !topnav) return;
-
-    hamburger.addEventListener("click", () => {
-      const isOpen = topnav.classList.toggle("show");
-      hamburger.setAttribute("aria-expanded", isOpen ? "true" : "false");
-    });
-
-    topnav.querySelectorAll("a").forEach(a => {
-      a.addEventListener("click", () => {
-        topnav.classList.remove("show");
-        hamburger.setAttribute("aria-expanded", "false");
-      });
-    });
-
-    document.addEventListener("click", (e) => {
-      if (window.matchMedia("(max-width: 900px)").matches) {
-        const inside = topnav.contains(e.target) || hamburger.contains(e.target);
-        if (!inside) {
-          topnav.classList.remove("show");
-          hamburger.setAttribute("aria-expanded", "false");
-        }
-      }
-    });
-  });
-</script>
 </body>
 </html>
