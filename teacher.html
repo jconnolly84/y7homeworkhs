@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Teacher Dashboard: Homework Attempts</title>
+  <meta name="description" content="Teacher dashboard for filtering Year 7 homework quiz attempts by class and name." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap topbar__inner">
+    <div class="brand">
+      <span class="brand__dot" aria-hidden="true"></span>
+      <span class="brand__title">Teacher Dashboard</span>
+      <span class="brand__tag">Homework attempts</span>
+    </div>
+    <nav class="topnav">
+      <a href="index.html">Student page</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  
+  <section class="card" id="teacher-auth-card">
+    <div class="card__header">
+      <h2>Teacher login</h2>
+      <p class="subhead">Staff only. Sign in to view and filter Year 7 homework attempts.</p>
+    </div>
+
+    <div class="quiz__meta" style="grid-template-columns: 1fr 1fr; gap: 12px;">
+      <label>
+        <span>Email</span>
+        <input id="teacherEmail" type="email" placeholder="name@school.org" autocomplete="username" />
+      </label>
+
+      <label>
+        <span>Password</span>
+        <input id="teacherPassword" type="password" placeholder="Password" autocomplete="current-password" />
+      </label>
+    </div>
+
+    <div class="quiz__actions">
+      <button id="btnTeacherLogin" type="button">Sign in</button>
+      <button id="btnTeacherLogout" type="button" style="display:none;">Sign out</button>
+      <p id="teacherAuthMsg" class="status" aria-live="polite"></p>
+    </div>
+
+    <p class="fineprint">
+      Teacher accounts are managed in Firebase Authentication (Email/Password). Students do not need accounts.
+    </p>
+  </section>
+
+
+  <section class="card" id="teacher-dashboard" style="display:none;">
+    <div class="card__header">
+      <h2>Attempts</h2>
+      <p class="subhead">Filter by class and student name. Export to CSV for marksheets.</p>
+    </div>
+
+    <div class="quiz__meta">
+      <label>
+        <span>Class</span>
+        <select id="filterClass">
+          <option value="">All classes</option>
+          <option>7A1</option>
+          <option>7A2</option>
+          <option>7A3</option>
+          <option>7B1</option>
+          <option>7B2</option>
+          <option>7B3</option>
+          <option>7B4</option>
+        </select>
+      </label>
+
+      <label>
+        <span>Name contains</span>
+        <input id="filterName" type="text" placeholder="e.g. Smith" />
+      </label>
+
+      <button id="refreshBtn" type="button" disabled>Refresh</button>
+    </div>
+
+    <div class="quiz__actions">
+      <button id="exportBtn" type="button" disabled>Export CSV</button>
+      <p id="dataStatus" class="status" aria-live="polite"></p>
+    </div>
+
+    <div style="overflow:auto; margin-top:12px;">
+      <table class="bitesize-table" id="attemptsTable" aria-label="Attempts table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Class</th>
+            <th>Name</th>
+            <th>Score</th>
+            <th>Core</th>
+            <th>Secure</th>
+            <th>Stretch</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <p class="fineprint">
+      Tip: You can also read local submissions (if Firebase wasn't enabled) from the student's machine via browser storage,
+      but that’s not reliable for homework. Firestore is the correct approach.
+    </p>
+  </section>
+</main>
+<!-- Firebase (no-build, GitHub Pages friendly) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+  // Firebase config (generated from your Firebase project)
+  const firebaseConfig = {
+  "apiKey": "AIzaSyCMaEkgBLzp713LAFysGpAp_nhruvLI814",
+  "authDomain": "hardware-software-7378b.firebaseapp.com",
+  "projectId": "hardware-software-7378b",
+  "storageBucket": "hardware-software-7378b.firebasestorage.app",
+  "messagingSenderId": "391094876354",
+  "appId": "1:391094876354:web:66afa1aa31abbd9b4de35b"
+};
+  firebase.initializeApp(firebaseConfig);
+
+  // Expose these for your page scripts
+  window.db = firebase.firestore();
+  window.auth = firebase.auth();
+</script>
+
+<script src="teacher.js"></script>
+</body>
+</html>
