@@ -2,19 +2,17 @@ const db = window.db;
 const auth = window.auth;
 
 /*
-  Teacher dashboard (Email/Password Auth)
+  Teacher dashboard (Email/Password Auth) — Index-free filtering
 
-  This page is designed for a static site (e.g., GitHub Pages) using Firebase "compat" scripts.
-  - Students submit attempts without logging in.
-  - Teachers sign in (Email/Password) to read/filter/export attempts.
-  - Optional: keep an allow-list of staff emails as an extra guard.
+  Firestore composite index errors happen when you combine where(...) with orderBy(...).
+  This version avoids that entirely:
+  - Always fetch the most recent N attempts ordered by created_at DESC (single-field index).
+  - Apply class + name filters in the browser.
 */
 
-// Optional: restrict access to only these staff emails (lowercase).
-// If you leave this list empty, ANY authenticated user can access the dashboard.
+// Optional staff allow-list (lowercase). Leave empty to allow any signed-in user.
 const ALLOWED_STAFF_EMAILS = [
   // "teacher1@school.org",
-  // "teacher2@school.org",
 ];
 
 const teacherEmail = document.getElementById("teacherEmail");
@@ -32,8 +30,8 @@ const filterClass = document.getElementById("filterClass");
 const filterName = document.getElementById("filterName");
 const tbody = document.querySelector("#attemptsTable tbody");
 
-let currentUser = null;
 let currentRows = [];
+let allRowsCache = []; // last fetched batch (unfiltered)
 
 function setAuthMsg(msg){ if (authMsg) authMsg.textContent = msg || ""; }
 function setDataStatus(msg){ if (dataStatus) dataStatus.textContent = msg || ""; }
@@ -45,7 +43,7 @@ function show(el, yes){
 
 function isAllowedEmail(email){
   const list = (ALLOWED_STAFF_EMAILS || []).map(x => String(x).toLowerCase().trim()).filter(Boolean);
-  if (list.length === 0) return true; // no allow-list enforced
+  if (list.length === 0) return true;
   const e = String(email || "").toLowerCase().trim();
   return list.includes(e);
 }
@@ -91,6 +89,28 @@ function renderTable(rows){
   });
 }
 
+function applyFiltersAndRender(){
+  const cls = (filterClass?.value || "").trim();
+  const nameNeedle = (filterName?.value || "").trim().toLowerCase();
+
+  let rows = [...allRowsCache];
+
+  if (cls){
+    rows = rows.filter(r => String(r.class || "").trim() === cls);
+  }
+  if (nameNeedle){
+    rows = rows.filter(r => String(r.student_name || "").toLowerCase().includes(nameNeedle));
+  }
+
+  // Ensure newest first
+  rows.sort((a,b) => String(b.created_at||"").localeCompare(String(a.created_at||"")));
+
+  currentRows = rows;
+  renderTable(rows);
+  setDataStatus(`Showing ${rows.length} attempt(s).`);
+  if (exportBtn) exportBtn.disabled = rows.length === 0;
+}
+
 async function loadAttempts(){
   if (!db){
     setDataStatus("Database not ready.");
@@ -101,25 +121,14 @@ async function loadAttempts(){
   if (exportBtn) exportBtn.disabled = true;
 
   try{
-    let q = db.collection("attempts").orderBy("created_at", "desc").limit(500);
+    // Single-field orderBy only (no where) -> no composite index required.
+    const snap = await db.collection("attempts")
+      .orderBy("created_at", "desc")
+      .limit(500)
+      .get();
 
-    const cls = (filterClass?.value || "").trim();
-    if (cls){
-      q = q.where("class", "==", cls);
-    }
-
-    const snap = await q.get();
-    let rows = snap.docs.map(d => ({ id:d.id, ...d.data() }));
-
-    const nameNeedle = (filterName?.value || "").trim().toLowerCase();
-    if (nameNeedle){
-      rows = rows.filter(r => String(r.student_name || "").toLowerCase().includes(nameNeedle));
-    }
-
-    currentRows = rows;
-    renderTable(rows);
-    setDataStatus(`Loaded ${rows.length} attempt(s).`);
-    if (exportBtn) exportBtn.disabled = rows.length === 0;
+    allRowsCache = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    applyFiltersAndRender();
   }catch(e){
     console.error(e);
     setDataStatus("Failed to load attempts. Check Firestore rules + Firebase initialisation.");
@@ -172,8 +181,6 @@ function exportCsv(){
 
 // -------- Auth wiring (Email/Password) --------
 function setSignedOut(){
-  currentUser = null;
-
   show(loginBtn, true);
   show(logoutBtn, false);
   show(dashboard, false);
@@ -183,12 +190,12 @@ function setSignedOut(){
 
   setAuthMsg("Please sign in to view attempts.");
   setDataStatus("");
+  allRowsCache = [];
+  currentRows = [];
   clearTable();
 }
 
 function setSignedIn(user){
-  currentUser = user;
-
   show(loginBtn, false);
   show(logoutBtn, true);
   show(dashboard, true);
@@ -219,11 +226,7 @@ async function signInEmailPassword(){
 }
 
 async function signOut(){
-  try{
-    await auth.signOut();
-  }catch(e){
-    console.error(e);
-  }
+  try{ await auth.signOut(); }catch(e){ console.error(e); }
 }
 
 function wireAuth(){
@@ -232,14 +235,12 @@ function wireAuth(){
       setSignedOut();
       return;
     }
-
     const email = user.email || "";
     if (!isAllowedEmail(email)){
       setAuthMsg(`Signed in as ${email} (not authorised).`);
       auth.signOut();
       return;
     }
-
     setSignedIn(user);
   });
 
@@ -251,10 +252,11 @@ function wireAuth(){
   });
 
   refreshBtn?.addEventListener("click", loadAttempts);
-  filterClass?.addEventListener("change", loadAttempts);
+
+  filterClass?.addEventListener("change", applyFiltersAndRender);
   filterName?.addEventListener("input", () => {
     clearTimeout(window.__nameTimer);
-    window.__nameTimer = setTimeout(loadAttempts, 350);
+    window.__nameTimer = setTimeout(applyFiltersAndRender, 150);
   });
 
   exportBtn?.addEventListener("click", exportCsv);
@@ -266,36 +268,5 @@ function wireAuth(){
     return;
   }
   wireAuth();
-  // Initial state (until onAuthStateChanged fires)
   setSignedOut();
 })();
-
-
-// -------- Mobile nav toggle (teacher page) --------
-document.addEventListener("DOMContentLoaded", () => {
-  const hamburger = document.getElementById("hamburger");
-  const topnav = document.getElementById("topnav");
-  if (!hamburger || !topnav) return;
-
-  hamburger.addEventListener("click", () => {
-    const isOpen = topnav.classList.toggle("show");
-    hamburger.setAttribute("aria-expanded", isOpen ? "true" : "false");
-  });
-
-  topnav.querySelectorAll("a").forEach(a => {
-    a.addEventListener("click", () => {
-      topnav.classList.remove("show");
-      hamburger.setAttribute("aria-expanded", "false");
-    });
-  });
-
-  document.addEventListener("click", (e) => {
-    if (window.matchMedia("(max-width: 900px)").matches){
-      const clickedInside = topnav.contains(e.target) || hamburger.contains(e.target);
-      if (!clickedInside){
-        topnav.classList.remove("show");
-        hamburger.setAttribute("aria-expanded", "false");
-      }
-    }
-  });
-});
