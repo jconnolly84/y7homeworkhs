@@ -84,6 +84,9 @@ function renderTable(rows){
       <td>${core}</td>
       <td>${sec}</td>
       <td>${str}</td>
+      <td style="text-align:right;">
+        <button type="button" class="btn btn--sm btn--danger" data-action="delete-attempt" data-id="${r.id}">Delete</button>
+      </td>
     `;
     tbody.appendChild(tr);
   });
@@ -179,6 +182,24 @@ function exportCsv(){
   downloadCsv("homework_attempts.csv", lines.join("\n"));
 }
 
+async function deleteAttempt(docId){
+  if (!db) return;
+  if (!docId) return;
+  const ok = confirm("Delete this attempt? This cannot be undone.");
+  if (!ok) return;
+
+  try{
+    await db.collection("attempts").doc(docId).delete();
+    // Remove from cache and re-render
+    allRowsCache = allRowsCache.filter(r => r.id !== docId);
+    applyFiltersAndRender();
+    setDataStatus("Attempt deleted.");
+  }catch(e){
+    console.error(e);
+    alert("Delete failed. Check Firestore rules (delete permission).");
+  }
+}
+
 // -------- Auth wiring (Email/Password) --------
 function setSignedOut(){
   show(loginBtn, true);
@@ -260,6 +281,15 @@ function wireAuth(){
   });
 
   exportBtn?.addEventListener("click", exportCsv);
+
+// Row actions (event delegation)
+tbody?.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
+  const action = btn.getAttribute("data-action");
+  const id = btn.getAttribute("data-id");
+  if (action === "delete-attempt") deleteAttempt(id);
+});
 }
 
 (function main(){

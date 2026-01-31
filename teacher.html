@@ -15,46 +15,32 @@
       <span class="brand__title">Teacher Dashboard</span>
       <span class="brand__tag">Homework attempts</span>
     </div>
-    <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" type="button">☰</button>
-    <nav class="topnav" id="topnav">
+    <nav class="topnav">
       <a href="index.html">Student page</a>
     </nav>
   </div>
 </header>
 
 <main class="wrap">
-  
-  <section class="card" id="teacher-auth-card">
+  <section class="card">
     <div class="card__header">
-      <h2>Teacher login</h2>
-      <p class="subhead">Staff only. Sign in to view and filter Year 7 homework attempts.</p>
-    </div>
-
-    <div class="quiz__meta" style="grid-template-columns: 1fr 1fr; gap: 12px;">
-      <label>
-        <span>Email</span>
-        <input id="teacherEmail" type="email" placeholder="name@school.org" autocomplete="username" />
-      </label>
-
-      <label>
-        <span>Password</span>
-        <input id="teacherPassword" type="password" placeholder="Password" autocomplete="current-password" />
-      </label>
+      <h2>Sign in</h2>
+      <p class="subhead">This page is designed to be protected with Firebase Authentication + an allow‑list.</p>
     </div>
 
     <div class="quiz__actions">
-      <button id="btnTeacherLogin" type="button">Sign in</button>
-      <button id="btnTeacherLogout" type="button" style="display:none;">Sign out</button>
-      <p id="teacherAuthMsg" class="status" aria-live="polite"></p>
+      <button id="signInBtn" type="button">Sign in with Google</button>
+      <button id="signOutBtn" type="button" disabled>Sign out</button>
+      <p id="authStatus" class="status" aria-live="polite"></p>
     </div>
 
     <p class="fineprint">
-      Teacher accounts are managed in Firebase Authentication (Email/Password). Students do not need accounts.
+      Configure <code>FIREBASE_CONFIG</code> and <code>ALLOWED_STAFF_EMAILS</code> in <code>teacher.js</code>.
+      Then lock down Firestore rules so only allowed staff can read attempts.
     </p>
   </section>
 
-
-  <section class="card" id="teacher-dashboard" style="display:none;">
+  <section class="card">
     <div class="card__header">
       <h2>Attempts</h2>
       <p class="subhead">Filter by class and student name. Export to CSV for marksheets.</p>
@@ -99,7 +85,8 @@
             <th>Core</th>
             <th>Secure</th>
             <th>Stretch</th>
-          </tr>
+                    <th>Actions</th>
+        </tr>
         </thead>
         <tbody></tbody>
       </table>
@@ -111,6 +98,11 @@
     </p>
   </section>
 </main>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 <!-- Firebase (no-build, GitHub Pages friendly) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
