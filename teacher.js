@@ -269,3 +269,33 @@ function wireAuth(){
   // Initial state (until onAuthStateChanged fires)
   setSignedOut();
 })();
+
+
+// -------- Mobile nav toggle (teacher page) --------
+document.addEventListener("DOMContentLoaded", () => {
+  const hamburger = document.getElementById("hamburger");
+  const topnav = document.getElementById("topnav");
+  if (!hamburger || !topnav) return;
+
+  hamburger.addEventListener("click", () => {
+    const isOpen = topnav.classList.toggle("show");
+    hamburger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  });
+
+  topnav.querySelectorAll("a").forEach(a => {
+    a.addEventListener("click", () => {
+      topnav.classList.remove("show");
+      hamburger.setAttribute("aria-expanded", "false");
+    });
+  });
+
+  document.addEventListener("click", (e) => {
+    if (window.matchMedia("(max-width: 900px)").matches){
+      const clickedInside = topnav.contains(e.target) || hamburger.contains(e.target);
+      if (!clickedInside){
+        topnav.classList.remove("show");
+        hamburger.setAttribute("aria-expanded", "false");
+      }
+    }
+  });
+});
