@@ -1,147 +1,176 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en-GB">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Teacher Dashboard: Homework Attempts</title>
-  <meta name="description" content="Teacher dashboard for filtering Year 7 homework quiz attempts by class and name." />
+  <title>Teacher Dashboard: Homework attempts</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-<header class="topbar">
-  <div class="wrap topbar__inner">
-    <div class="brand">
-      <span class="brand__dot" aria-hidden="true"></span>
-      <span class="brand__title">Teacher Dashboard</span>
-      <span class="brand__tag">Homework attempts</span>
-    </div>
-    <nav class="topnav">
-      <a href="index.html">Student page</a>
-    </nav>
-  </div>
-</header>
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <div class="brand">
+        <span class="dot"></span>
+        <strong>Teacher Dashboard</strong>
+        <span class="muted" style="margin-left:10px;">Homework attempts</span>
+      </div>
 
-<main class="wrap">
-  <section class="card" id="teacher-dashboard">
-    <div class="card__header">
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" type="button">☰</button>
+      <nav class="topnav" id="topnav">
+        <a href="index.html">Student page</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card" style="margin-top:18px;">
       <h2>Sign in</h2>
-      <p class="subhead">This page is designed to be protected with Firebase Authentication + an allow‑list.</p>
-    </div>
+      <p class="muted">Sign in using your staff email and password to view homework attempts.</p>
 
-    <div class="quiz__actions">
-      <button id="signInBtn" type="button">Sign in with Google</button>
-      <button id="signOutBtn" type="button" disabled>Sign out</button>
-      <p id="authStatus" class="status" aria-live="polite"></p>
-    </div>
+      <div class="form-grid">
+        <div>
+          <label for="teacherEmail"><strong>Email</strong></label>
+          <input id="teacherEmail" type="email" placeholder="you@school.org" autocomplete="username" />
+        </div>
+        <div>
+          <label for="teacherPassword"><strong>Password</strong></label>
+          <input id="teacherPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+      </div>
 
-    <p class="fineprint">
-      Configure <code>FIREBASE_CONFIG</code> and <code>ALLOWED_STAFF_EMAILS</code> in <code>teacher.js</code>.
-      Then lock down Firestore rules so only allowed staff can read attempts.
-    </p>
-  </section>
+      <div class="btn-row">
+        <button class="btn" id="btnTeacherLogin" type="button">Sign in</button>
+        <button class="btn btn--ghost" id="btnTeacherLogout" type="button">Sign out</button>
+      </div>
 
-  <section class="card">
-    <div class="card__header">
+      <p id="teacherAuthMsg" class="muted"></p>
+    </section>
+
+    <section class="card" id="teacher-dashboard" style="margin-top:18px;">
       <h2>Attempts</h2>
-      <p class="subhead">Filter by class and student name. Export to CSV for marksheets.</p>
-    </div>
+      <p class="muted">Filter by class and student name. Export to CSV for marksheets.</p>
 
-    <div class="quiz__meta">
-      <label>
-        <span>Class</span>
-        <select id="filterClass">
-          <option value="">All classes</option>
-          <option>7A1</option>
-          <option>7A2</option>
-          <option>7A3</option>
-          <option>7B1</option>
-          <option>7B2</option>
-          <option>7B3</option>
-          <option>7B4</option>
-        </select>
-      </label>
+      <div class="filters">
+        <div>
+          <label class="muted"><strong>Class</strong></label>
+          <select id="filterClass">
+            <option value="">All classes</option>
+            <option>7A1</option><option>7A2</option><option>7A3</option>
+            <option>7B1</option><option>7B2</option><option>7B3</option><option>7B4</option>
+          </select>
+        </div>
 
-      <label>
-        <span>Name contains</span>
-        <input id="filterName" type="text" placeholder="e.g. Smith" />
-      </label>
+        <div style="flex:1;">
+          <label class="muted"><strong>Name contains</strong></label>
+          <input id="filterName" type="text" placeholder="e.g. Smith" />
+        </div>
 
-      <button id="refreshBtn" type="button" disabled>Refresh</button>
-    </div>
+        <div class="filters__actions">
+          <button class="btn" id="refreshBtn" type="button">Refresh</button>
+        </div>
+      </div>
 
-    <div class="quiz__actions">
-      <button id="exportBtn" type="button" disabled>Export CSV</button>
-      <p id="dataStatus" class="status" aria-live="polite"></p>
-    </div>
+      <div class="btn-row" style="margin-top:10px;">
+        <button class="btn" id="exportBtn" type="button">Export CSV</button>
+        <div id="dataStatus" class="muted" style="align-self:center;"></div>
+      </div>
 
-    <div style="overflow:auto; margin-top:12px;">
-      <table class="bitesize-table" id="attemptsTable" aria-label="Attempts table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Class</th>
-            <th>Name</th>
-            <th>Score</th>
-            <th>Core</th>
-            <th>Secure</th>
-            <th>Stretch</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+      <div style="overflow:auto; margin-top:14px;">
+        <table id="attemptsTable" class="table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Class</th>
+              <th>Name</th>
+              <th>Score</th>
+              <th>Core</th>
+              <th>Secure</th>
+              <th>Stretch</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
 
-    <p class="fineprint">
-      Tip: You can also read local submissions (if Firebase wasn't enabled) from the student's machine via browser storage,
-      but that’s not reliable for homework. Firestore is the correct approach.
-    </p>
-  </section>
-</main>
+      <p class="muted" style="margin-top:12px;">
+        Tip: Firestore is the correct approach for reliable homework tracking.
+      </p>
+    </section>
+  </main>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <style>
+    .form-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      margin: 12px 0;
+    }
+    .form-grid input{
+      width:100%;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      font-size:16px;
+    }
+    .filters{
+      display:flex;
+      gap:14px;
+      flex-wrap:wrap;
+      align-items:flex-end;
+    }
+    .filters select, .filters input{
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      font-size:16px;
+    }
+    .filters__actions{
+      margin-left:auto;
+    }
+    .table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+    }
+    .table th, .table td{
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      text-align:left;
+      white-space:nowrap;
+    }
+    .table thead th{
+      background:#f6f7fb;
+      position:sticky;
+      top:0;
+      z-index:1;
+    }
+    @media (max-width: 700px){
+      .form-grid{ grid-template-columns: 1fr; }
+      .filters__actions{ margin-left:0; }
+    }
+  </style>
 
-<!-- Firebase (no-build, GitHub Pages friendly) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>
-  // Firebase config (generated from your Firebase project)
-  const firebaseConfig = {
-  "apiKey": "AIzaSyCMaEkgBLzp713LAFysGpAp_nhruvLI814",
-  "authDomain": "hardware-software-7378b.firebaseapp.com",
-  "projectId": "hardware-software-7378b",
-  "storageBucket": "hardware-software-7378b.firebasestorage.app",
-  "messagingSenderId": "391094876354",
-  "appId": "1:391094876354:web:66afa1aa31abbd9b4de35b"
-};
-  firebase.initializeApp(firebaseConfig);
+  <!-- Firebase (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-  // Expose these for your page scripts
-  window.db = firebase.firestore();
-  window.auth = firebase.auth();
-</script>
+  <script>
+    // Initialise Firebase for teacher dashboard
+    const firebaseConfig = {
+      apiKey: "AIzaSyCMaEkgBLzp713LAFysGpAp_nhruvLI814",
+      authDomain: "hardware-software-7378b.firebaseapp.com",
+      projectId: "hardware-software-7378b",
+      storageBucket: "hardware-software-7378b.firebasestorage.app",
+      messagingSenderId: "391094876354",
+      appId: "1:391094876354:web:66afa1aa31abbd9b4de35b"
+    };
+    firebase.initializeApp(firebaseConfig);
+    window.auth = firebase.auth();
+    window.db = firebase.firestore();
+  </script>
 
-<script src="teacher.js"></script>
-
-<style>
-  .form-grid{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap:12px;
-    margin: 12px 0;
-  }
-  .form-grid input{
-    width:100%;
-    padding:10px 12px;
-    border:1px solid var(--line);
-    border-radius:12px;
-    font-size:16px;
-  }
-  @media (max-width: 700px){
-    .form-grid{ grid-template-columns: 1fr; }
-  }
-</style>
+  <script src="teacher.js"></script>
 </body>
 </html>
